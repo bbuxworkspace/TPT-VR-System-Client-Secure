@@ -267,13 +267,13 @@ const Model = () => {
 
 export default function Hall({ width }) {
 
-  const [fov, setFov] = useState(65);
+  const [fov, setFov] = useState(55);
 
   useEffect(() => {
     if (width < 500) {
-      setFov(65);
+      setFov(85);
     } else {
-      setFov(65);
+      setFov(55);
     }
   }, [width]);
 

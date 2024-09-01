@@ -75,7 +75,7 @@ const DashboardPage = ({ data, getDashboardData, getTileList }) => {
             />
           </Col>
           
-        </Row>
+        </Row> 
       )}
     </Layout>
   );

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { useDrag, useMove } from "react-use-gesture";
 import * as THREE from "three";
@@ -127,8 +127,6 @@ function Controls({ settings }) {
   
         intersects.map((intersectItem) => {
           const name = intersectItem.object.name;
-
-  
           if (floorCircle.current) { // Check if floorCircle.current is defined
             switch (name) {
               case activeFloor:

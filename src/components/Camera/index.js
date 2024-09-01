@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
 
-export default function Camera({ fov = 65, ...props }) {
+export default function Camera({ fov = 55, ...props }) {
   const ref = useRef();
   const { camera, gl, set } = useThree();
-  const controlsRef = useRef();
 
   useEffect(() => {
     ref.current.rotation.order = "YXZ";
+    ref.current.aspect = window.innerWidth / window.innerHeight; // Ensures correct aspect ratio
+    ref.current.updateProjectionMatrix();
     set({ camera: ref.current });
   }, [set]);
 
@@ -28,6 +28,7 @@ export default function Camera({ fov = 65, ...props }) {
       <perspectiveCamera
         ref={ref}
         fov={fov}
+        aspect={window.innerWidth / window.innerHeight} // Set aspect ratio
         far={100}
         near={0.5}
         {...props}

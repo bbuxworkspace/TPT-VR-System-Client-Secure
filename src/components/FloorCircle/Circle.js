@@ -9,7 +9,7 @@ export default ({ texture, transparent, opacity }) => {
 
   return (
     <mesh ref={circle} position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <circleGeometry attach='geometry' args={[0.1, 32]} />
+      <circleGeometry attach='geometry' args={[0.2, 32]} />
       <meshStandardMaterial
         attach='material'
         map={circleTexture}

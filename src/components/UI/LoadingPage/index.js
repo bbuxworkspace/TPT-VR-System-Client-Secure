@@ -5,23 +5,14 @@ import { useLoader } from "../../../state/Store";
 import { useLocation } from "react-router-dom";
 import { LoadingContent, LoadingPageWrapper } from "./style";
 import gsap from "gsap";
-import { DefaultLoadingManager } from "three";
 
-export default ({ total = 40 }) => {
+export default () => {
   const pageRef = useRef();
   const contentRef = useRef();
   const logoRef = useRef();
   const bgImageRef = useRef();
   const { progress, reset, setProgress } = useLoader();
   const location = useLocation();
-
-  useEffect(() => {
-    DefaultLoadingManager.onProgress = function (url, itemsLoaded) {
-      const progressPercent = Math.floor((itemsLoaded / total) * 100);
-
-      setProgress(progressPercent);
-    };
-  }, []);
 
   useEffect(() => {
     // Reset progress to zero when the component mounts
