@@ -134,6 +134,8 @@ const Model = () => {
   const pmremGenerator = new PMREMGenerator(gl);
   const video = document.getElementById("video");
   const videoTexture = new VideoTexture(video);
+  videoTexture.flipY = false; // Ensure the video texture is not inverted
+  videoTexture.needsUpdate = true;
 
   gl.physicallyCorrectLights = true;
   gl.shadowMap.enabled = true;
@@ -170,7 +172,7 @@ const Model = () => {
 
   useMemo(() => {
     let envMap;
-    DefaultLoadingManager.onLoad = () => pmremGenerator.dispose();
+    // DefaultLoadingManager.onLoad = () => pmremGenerator.dispose();
 
     // scene.add(scene);
     setModel(scene);
@@ -224,11 +226,14 @@ const Model = () => {
           o.material.lightMapIntensity = 2;
 
           if (o.name.includes("TV_Screen")) {
-               
-                o.material = new MeshBasicMaterial({
-                  map: new VideoTexture(document.getElementById("video")),
-                });
-              }
+              o.material = new MeshBasicMaterial({
+                map: videoTexture,
+
+              });
+            }
+
+          // o.material.needsUpdate = true;
+
 
           // if (
           //   o.name.includes("Exterior") &&
