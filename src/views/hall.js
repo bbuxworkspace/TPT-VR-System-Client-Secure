@@ -1,13 +1,12 @@
-import { Canvas } from "@react-three/fiber";
-import { useLoader, useThree } from "@react-three/fiber";
+import React, { useMemo, useState, useEffect, useRef, Suspense } from "react";
+import * as THREE from 'three';
+import { Canvas, useLoader, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls, Html, useProgress, PerspectiveCamera, Stats } from "@react-three/drei";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import React, { useMemo, useState, useEffect, Suspense } from "react";
 import { TextureLoader, PMREMGenerator, MeshBasicMaterial, VideoTexture, SRGBColorSpace, ACESFilmicToneMapping, DefaultLoadingManager, SpotLight ,DirectionalLight } from "three";
 import { useControls } from 'leva'
-import { useRef } from 'react'
-import * as THREE from 'three'
+
 
 import { useModel } from "../state/Store";
 import Navbar from "../components/UI/Navbar";
@@ -17,6 +16,7 @@ import Controls from "../components/Controls";
 import FloorCircle from "../components/FloorCircle";
 import LoadingManager from "../components/LoadingManager";
 import LoadingPage from "../components/UI/LoadingPage";
+import AudioPlayer from '../components/AudioPlayer'; // Import the AudioPlayer component
 
 function Loader() {
   const { progress } = useProgress();
@@ -125,9 +125,10 @@ function Lights() {
 }
 
 
-const Model = () => {
+const Model = ({toggleAudio}) => {
   const { scene, gl } = useThree();
   const { setModel, setScene, setLightMaps } = useModel((state) => state);
+  const isMounted = useRef(true);
   // const gltfLoader = useMemo(() => new GLTFLoader(), []);
   // const pmremGenerator = useMemo(() => new PMREMGenerator(gl), [gl]);
   const loader = new GLTFLoader();
@@ -173,7 +174,11 @@ const Model = () => {
   dracoLoader.setDecoderPath("/draco-gltf/");
   loader.setDRACOLoader(dracoLoader);
 
-
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useMemo(() => {
     let envMap;
@@ -213,9 +218,14 @@ const Model = () => {
           o.material.lightMapIntensity = 2;
 
           if (o.name.includes("TV_Screen")) {
-              o.material = new MeshBasicMaterial({
-                map: videoTexture,
-              });
+            o.material = new MeshBasicMaterial({
+              map: videoTexture,
+            });
+
+               // Add click event listener
+            o.onClick = () => {
+              toggleAudio();
+            };
             }
 
 
@@ -269,6 +279,8 @@ const Model = () => {
 export default function Hall({ width }) {
 
   const [fov, setFov] = useState(55);
+  const [isPlaying, setIsPlaying] = useState(false);
+
 
   useEffect(() => {
     if (width < 500) {
@@ -277,6 +289,13 @@ export default function Hall({ width }) {
       setFov(55);
     }
   }, [width]);
+
+  const handleAudioEnd = () => {
+    setIsPlaying(false); // Handle when audio ends
+  };
+
+
+  
 
   
   const config = {
@@ -328,7 +347,7 @@ export default function Hall({ width }) {
           {/* <directionalLight position={[2,3,-0.16]} intensity={2} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} /> */}
           {/* <ContactShadows frames={10} position={[0,-2,-0.16]} rotation={[0,-Math.PI/2,0]} scale={0.8} opacity={0.1} blur={0.5} color='black'/> */}
           <FloorCircle />
-          <Model />
+          <Model/>
           <Controls settings={config.controls} />
           {/* <Environment preset="sunset" background /> */}
           <Stats />
@@ -347,6 +366,12 @@ export default function Hall({ width }) {
           type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'
         />
       </video>
+
+      <AudioPlayer 
+        url="/assets/audio/voiceover_1.mp3" 
+        isPlaying={isPlaying}
+        onEnded={handleAudioEnd} 
+      />
       <Instructions />
       <LoadingPage />
       <Navbar active="hall" />

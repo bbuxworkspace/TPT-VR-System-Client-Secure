@@ -17,6 +17,17 @@ export default () => {
   useEffect(() => {
     // Reset progress to zero when the component mounts
     setProgress(0);
+
+    // Cleanup function to run when component unmounts
+    return () => {
+      gsap.killTweensOf(logoRef.current);
+      gsap.killTweensOf(bgImageRef.current);
+      gsap.killTweensOf(contentRef.current);
+      gsap.killTweensOf(".indicator-progress");
+      gsap.killTweensOf(".indicator-text");
+    };
+
+    
   }, [setProgress]);
 
   useEffect(() => {

@@ -58,7 +58,9 @@ function Controls({ settings }) {
           const isFloor = intersect.object.name === activeFloor;
           if (isFloor) {
             setIsMoving(true);
-            floorCircle.current.position.copy(intersect.point);
+            if (floorCircle.current) {
+              floorCircle.current.position.copy(intersect.point);
+            }
 
             gsap.to(camera.position, {
               duration: 0.8,
@@ -70,15 +72,17 @@ function Controls({ settings }) {
 
             const tl = gsap.timeline();
             tl.fromTo(
-              floorCircle.current.children[0].material,
+              floorCircle.current?.children[0]?.material, // Added optional chaining
               { opacity: 1 },
               {
                 opacity: 0,
                 duration: 0.4,
                 onComplete: () => {
-                  document.body.style.cursor = "grab";
-                  floorCircle.current.children[0].material.opacity = 0;
-                  floorCircle.current.children[0].scale.set(1, 1, 1);
+                  if (floorCircle.current && floorCircle.current.children[0]) {
+                    document.body.style.cursor = "grab";
+                    floorCircle.current.children[0].material.opacity = 0;
+                    floorCircle.current.children[0].scale.set(1, 1, 1);
+                  }
                 },
               }
             );
@@ -92,6 +96,12 @@ function Controls({ settings }) {
             duration: 1.5,
             onComplete: () => {
               instructions.style.display = "none";
+
+              // Play the audio when instructions fade out
+              const audioPlayer = document.getElementById("audioPlayer");
+              if (audioPlayer) {
+                audioPlayer.play();
+              }
             },
           });
           document.body.style.cursor = "grab";
@@ -130,7 +140,6 @@ function Controls({ settings }) {
           if (floorCircle.current) { // Check if floorCircle.current is defined
             switch (name) {
               case activeFloor:
-
                 floorCircle.current.visible = true;
                 floorCircle.current.position
                   .copy(intersectItem.point)
@@ -153,7 +162,6 @@ function Controls({ settings }) {
     },
     { domTarget: gl.domElement } // bind this hook to canvas
   );
-  
 
   useEffect(() => {
     drag();

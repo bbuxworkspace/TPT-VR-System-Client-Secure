@@ -18,40 +18,39 @@ import {
 import "react-accessible-accordion/dist/fancy-example.css";
 import TextureSelection from "./TextureSelection";
 import { useModel } from "../../../state/Store";
-import Button from "../Button";
 import { useNavigate } from 'react-router-dom';
 import { doorData, floorData as floorData2, wallData } from "./data";
 
 const Navbar = ({ active, theme }) => {
   const nav = React.useRef();
   const navIcon = React.useRef();
-
   const navigate = useNavigate();
-
-  console.log("Navbar - floorData2:", floorData2);
-
   const [floorData, setFloorData] = useState([]);
 
-  const { model, scene, setActiveFloor, lightMaps } = useModel(
-    (state) => state
-  );
+  const { model, scene, setActiveFloor, lightMaps } = useModel((state) => state);
 
   // Retrieve floor data from localStorage and filter it
   useEffect(() => {
-    const storedTiles = localStorage.getItem('tiles');    
+    const storedTiles = localStorage.getItem('tiles');
     if (storedTiles) {
-      const parsedTiles = JSON.parse(storedTiles).map((tile, index) => ({
-        id: index + 1,
-        name: tile.name,
-        textureImg: `/assets/floors/${tile.image}`, // Adding /assets prefix to textureImg
-      }));
-      setFloorData(parsedTiles);
+      try {
+        const parsedTiles = JSON.parse(storedTiles).map((tile, index) => ({
+          id: index + 1,
+          name: tile.name,
+          textureImg: `/assets/floors/${tile.image}`, // Adding /assets prefix to textureImg
+        }));
+        setFloorData(parsedTiles);
+        console.log("NavBar Parsed",parsedTiles);
+      } catch (error) {
+        console.error("Error parsing tiles from localStorage:", error);
+        setFloorData(floorData2);
+        console.log("NavBar Error",floorData2);
+
+      }
     } else {
       setFloorData(floorData2);
     }
   }, []);
-
-  console.log("Navbar - floorData:", floorData);
 
   function handleOpen() {
     if (nav.current.classList.contains("show-nav")) {
@@ -107,7 +106,6 @@ const Navbar = ({ active, theme }) => {
 
   const changeRoom = (page) => {
     navigate(page); // Navigate to the specific page
-    // No need to toggle any state here
   };
 
   const accordionList = [

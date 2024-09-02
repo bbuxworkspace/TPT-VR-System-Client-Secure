@@ -17,7 +17,7 @@ import setAuthToken from "../utils/setAuthToken";
 
 // SIGNUP ACTION
 export const signup = (values) => async (dispatch) => {
-  let formData = {
+  const formData = {
     name: values.name,
     username: values.username,
     password: values.password,
@@ -29,6 +29,7 @@ export const signup = (values) => async (dispatch) => {
     },
     withCredentials: true,
   };
+
   try {
     const res = await axios.post(
       `${BASE_URL}/api/v1/auth/signup`,
@@ -49,14 +50,14 @@ export const signup = (values) => async (dispatch) => {
       type: SIGNUP_FAIL,
     });
     console.log(err);
-    toast.error(err.response.data.message);
+    toast.error(err.response?.data?.message || "Signup failed.");
     return false;
   }
 };
 
 // LOGIN ACTION
 export const login = (values) => async (dispatch) => {
-  let formData = {
+  const formData = {
     username: values.username,
     password: values.password,
   };
@@ -67,18 +68,20 @@ export const login = (values) => async (dispatch) => {
     },
     withCredentials: true,
   };
+
   try {
     const res = await axios.post(
       `${BASE_URL}/api/v1/auth/login`,
       JSON.stringify(formData),
       config
     );
+
     dispatch({
       type: LOGIN_SUCCESS,
       payload: res.data,
     });
 
-    dispatch(getRefreshToken());
+    await dispatch(getRefreshToken());
     toast.success("Logged in successfully");
     return true;
   } catch (err) {
@@ -86,7 +89,7 @@ export const login = (values) => async (dispatch) => {
       type: LOGIN_FAIL,
     });
     console.log(err);
-    toast.error(err.response.data.message);
+    toast.error(err.response?.data?.message || "Login failed.");
     return false;
   }
 };
@@ -94,7 +97,7 @@ export const login = (values) => async (dispatch) => {
 // LOGOUT ACTION
 export const logout = () => async (dispatch) => {
   try {
-    const res = await axios.post(
+    await axios.post(
       `${BASE_URL}/api/v1/auth/logout`,
       {},
       {
@@ -105,49 +108,132 @@ export const logout = () => async (dispatch) => {
       }
     );
 
-    toast.success("Logged out successfully");
-
     dispatch({
       type: LOGOUT_SUCCESS,
     });
 
+    toast.success("Logged out successfully");
+    window.location.href = '/'; // Redirect to home page
+
     return true;
   } catch (error) {
-    dispatch({
-      type: LOGOUT_FAIL,
-    });
-    console.log(error);
-    return false;
+    if (error.response?.status === 401) {
+      const refreshSuccess = await dispatch(getRefreshToken());
+
+      if (refreshSuccess) {
+        try {
+          await axios.post(
+            `${BASE_URL}/api/v1/auth/logout`,
+            {},
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              withCredentials: true,
+            }
+          );
+
+          dispatch({
+            type: LOGOUT_SUCCESS,
+          });
+
+          toast.success("Logged out successfully after token refresh");
+          window.location.href = '/'; // Redirect to home page
+
+          return true;
+        } catch (logoutError) {
+          dispatch({
+            type: LOGOUT_FAIL,
+          });
+
+          toast.error("Logout failed after refreshing token.");
+          window.location.href = '/'; // Redirect to home page
+
+          return false;
+        }
+      } else {
+        dispatch({
+          type: LOGOUT_FAIL,
+        });
+
+        toast.error("Logout failed, and token refresh was not successful.");
+        window.location.href = '/'; // Redirect to home page
+
+        return false;
+      }
+    } else {
+      dispatch({
+        type: LOGOUT_FAIL,
+      });
+
+      toast.error("Logout error!");
+      window.location.href = '/'; // Redirect to home page
+
+      return false;
+    }
   }
 };
 
-
 // GET PROFILE DATA
 export const getProfileData = () => async (dispatch) => {
-    try {
-      const res = await axios.get(`${BASE_URL}/api/v1/profile/`, {
-        withCredentials: true,
-      });
-  
-      dispatch({
-        type: AUTH_USER_LOAD,
-        payload: res.data.user,
-      });
-  
-      return true;
-    } catch (error) {
+  try {
+    const res = await axios.get(`${BASE_URL}/api/v1/profile/`, {
+      withCredentials: true,
+    });
+
+    dispatch({
+      type: AUTH_USER_LOAD,
+      payload: res.data.user,
+    });
+
+    return true;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      const refreshSuccess = await dispatch(getRefreshToken());
+
+      if (refreshSuccess) {
+        try {
+          const res = await axios.get(`${BASE_URL}/api/v1/profile/`, {
+            withCredentials: true,
+          });
+
+          dispatch({
+            type: AUTH_USER_LOAD,
+            payload: res.data.user,
+          });
+
+          return true;
+        } catch (profileError) {
+          dispatch({
+            type: AUTH_USER_LOAD_ERROR,
+          });
+
+          console.log(profileError);
+          return false;
+        }
+      } else {
+        dispatch({
+          type: AUTH_USER_LOAD_ERROR,
+        });
+
+        console.log(error);
+        return false;
+      }
+    } else {
       dispatch({
         type: AUTH_USER_LOAD_ERROR,
       });
+
+      console.log(error);
       return false;
     }
-  };
-
+  }
+};
 
 // GET REFRESH TOKEN
 export const getRefreshToken = () => async (dispatch) => {
   try {
-    const refreshRes = await axios.post(
+    const response = await axios.post(
       `${BASE_URL}/api/v1/auth/refresh-token`,
       {},
       {
@@ -158,22 +244,22 @@ export const getRefreshToken = () => async (dispatch) => {
       }
     );
 
-    localStorage.setItem("token_book", refreshRes.data.accessToken);
-
-    setAuthToken(refreshRes.data.accessToken);
+    localStorage.setItem("token_book", response.data.accessToken);
+    setAuthToken(response.data.accessToken);
 
     dispatch({
       type: ACCESS_TOKEN_SUCCESS,
-      payload: refreshRes.data.accessToken,
+      payload: response.data.accessToken,
     });
-    // dispatch(getProfileData());
+
+    await dispatch(getProfileData());
 
     return true;
   } catch (error) {
     dispatch({
       type: ACCESS_TOKEN_ERROR,
     });
+
     return false;
   }
 };
-

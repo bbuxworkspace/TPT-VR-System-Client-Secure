@@ -17,6 +17,7 @@ import Controls from "../components/Controls";
 import FloorCircle from "../components/FloorCircle";
 import LoadingManager from "../components/LoadingManager";
 import LoadingPage from "../components/UI/LoadingPage";
+import AudioPlayer from '../components/AudioPlayer'; // Import the AudioPlayer component
 
 function Loader() {
   const { progress } = useProgress();
@@ -306,6 +307,7 @@ const Model = () => {
 export default function Room({ width }) {
 
   const [fov, setFov] = useState(55);
+  const [isPlaying, setIsPlaying] = useState(false);
 
 
   useEffect(() => {
@@ -316,6 +318,11 @@ export default function Room({ width }) {
     }
   }, [width]);
 
+  const handleAudioEnd = () => {
+    setIsPlaying(false); // Handle when audio ends
+  };
+
+
   
   const config = {
     controls: {
@@ -323,6 +330,8 @@ export default function Room({ width }) {
     },
     camera: {},
   };
+
+
 
 
 
@@ -369,6 +378,7 @@ export default function Room({ width }) {
           <FloorCircle />
           <Model />
           <Controls settings={config.controls} />
+          
           {/* <Environment preset="sunset" background /> */}
           <Stats />
         </Suspense>
@@ -387,6 +397,12 @@ export default function Room({ width }) {
           type="video/mp4"
         />
       </video>
+
+      <AudioPlayer 
+        url="/assets/audio/voiceover_2.mp3" 
+        isPlaying={isPlaying} 
+        onEnded={handleAudioEnd} 
+      />
       <Instructions />
       <LoadingPage />
       <Navbar active="room" />

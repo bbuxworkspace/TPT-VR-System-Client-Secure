@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 import { Col, Row, Spinner } from "react-bootstrap";
 import { connect } from "react-redux";
 import { getDashboardData } from "../../actions/Dashboard.action";
@@ -14,29 +16,31 @@ import { BiBook, BiSquare } from "react-icons/bi";
 const DashboardPage = ({ data, getDashboardData, getTileList }) => {
 
   const [tiles, setTiles] = useState([]);
+  const location = useLocation(true);
 
   useEffect(() => {
     const storedTiles = localStorage.getItem('tiles');
     if (storedTiles) {
       setTiles(JSON.parse(storedTiles));
       console.log("DashboardPage", tiles);
-    } else {
-      const loadTiles = async () => {
-        const tilesFromServer = await getTileList();
-        setTiles(tilesFromServer);
-      };
-      loadTiles();
-      console.log("DashboardPage", tiles);
-    }
+    } 
+    
+  
+    const loadTiles = async () => {
+      const tilesFromServer = await getTileList(1);
+      setTiles(tilesFromServer);
+    };
+    loadTiles();
+    console.log("DashboardPage", tiles);
 
 
 
-  }, [getTileList]);
+  }, [location.pathname, getTileList]);
 
 
   useEffect(() => {
     getDashboardData();
-  }, [getDashboardData]);
+  }, [location.pathname, getDashboardData]);
 
 
   return (
