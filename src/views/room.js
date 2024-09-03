@@ -176,8 +176,9 @@ const Model = () => {
     // DefaultLoadingManager.onLoad = () => pmremGenerator.dispose();
 
     // scene.add(scene);
-    setModel(scene);
+    // setModel(scene);
     // setScene(scene);
+    setModel(scene);
 
 
     setLightMaps({
@@ -217,6 +218,8 @@ const Model = () => {
 
       scene.add(gltf.scene);
       setScene(gltf.scene);
+      setModel(gltf.scene);  // Correctly set the loaded GLTF model
+
 
       gltf.scene.traverse((o) => {
         if (o.isMesh) {

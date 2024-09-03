@@ -20,14 +20,41 @@ import TextureSelection from "./TextureSelection";
 import { useModel } from "../../../state/Store";
 import { useNavigate } from 'react-router-dom';
 import { doorData, floorData as floorData2, wallData } from "./data";
+import Button from "../Button";
 
 const Navbar = ({ active, theme }) => {
   const nav = React.useRef();
   const navIcon = React.useRef();
   const navigate = useNavigate();
   const [floorData, setFloorData] = useState([]);
+  const [toggleFurniture, setToggleFurniture] = useState(false);
+  const [toggleRoom, setToggleRoom] = useState(true);
 
   const { model, scene, setActiveFloor, lightMaps } = useModel((state) => state);
+
+  const accordionList = [
+    {
+      id: 1,
+      title: "Flooring",
+      type: "Floor",
+      isDoorSelection: false,
+      data: floorData,  // Use the floorData state here
+    },
+    // {
+    //   id: 2,
+    //   title: "Wall Paint",
+    //   type: "Wall",
+    //   isDoorSelection: false,
+    //   data: wallData,
+    // },
+    // {
+    //   id: 3,
+    //   title: "Doors",
+    //   type: "Door",
+    //   isDoorSelection: true,
+    //   data: doorData,
+    // },
+  ];
 
   // Retrieve floor data from localStorage and filter it
   useEffect(() => {
@@ -67,37 +94,12 @@ const Navbar = ({ active, theme }) => {
   }
 
   function handleDisableFurniture() {
+    
     if (model) {
       model.traverse((o) => {
         if (o.isMesh) {
           if (o.name.includes("Interior")) {
             o.visible = !o.visible;
-          }
-
-          if (o.name === "Empty_Safe_Area") {
-            scene.remove(o);
-            o.geometry.dispose();
-            o.material.dispose();
-          }
-
-          if (!o.visible) {
-            setActiveFloor("Empty_Safe_Area");
-            if (o.name.includes("Exterior")) {
-              lightMaps.empty[0].flipY = false;
-              o.material.lightMap = lightMaps.empty[0];
-            } else if (o.name.includes("Furniture")) {
-              lightMaps.empty[1].flipY = false;
-              o.material.lightMap = lightMaps.empty[1];
-            }
-          } else {
-            setActiveFloor("Safe_Area");
-            if (o.name.includes("Exterior")) {
-              lightMaps.nonEmpty[0].flipY = false;
-              o.material.lightMap = lightMaps.nonEmpty[0];
-            } else if (o.name.includes("Furniture")) {
-              lightMaps.nonEmpty[1].flipY = false;
-              o.material.lightMap = lightMaps.nonEmpty[1];
-            }
           }
         }
       });
@@ -108,29 +110,7 @@ const Navbar = ({ active, theme }) => {
     navigate(page); // Navigate to the specific page
   };
 
-  const accordionList = [
-    {
-      id: 1,
-      title: "Flooring",
-      type: "Floor",
-      isDoorSelection: false,
-      data: floorData,  // Use the floorData state here
-    },
-    {
-      id: 2,
-      title: "Wall Paint",
-      type: "Wall",
-      isDoorSelection: false,
-      data: wallData,
-    },
-    {
-      id: 3,
-      title: "Doors",
-      type: "Door",
-      isDoorSelection: true,
-      data: doorData,
-    },
-  ];
+  
 
   return (
     <NavbarWrapper ref={nav}>
@@ -170,6 +150,22 @@ const Navbar = ({ active, theme }) => {
             Room
           </LanguageButton>
         </div>
+
+        <div
+          style={{
+            display: "flex",
+            width: "100%",
+            justifyContent: "center",
+            margin: "20px 0",
+          }}
+        >
+          <Button onClick={handleDisableFurniture}>
+            {toggleFurniture
+              ? "View with furniture"
+              : "View without furniture"}
+          </Button>
+        </div>
+
         
         <AccordionWrapper>
           <Accordion allowZeroExpanded preExpanded={[1]}>

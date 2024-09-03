@@ -207,6 +207,8 @@ const Model = ({toggleAudio}) => {
 
       scene.add(gltf.scene);
       setScene(gltf.scene);
+      setModel(gltf.scene);  // Correctly set the loaded GLTF model
+
 
 
       gltf.scene.traverse((o) => {
