@@ -1,6 +1,8 @@
 import { Canvas } from "@react-three/fiber";
 import { useLoader, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls, Html, useProgress, PerspectiveCamera, Stats } from "@react-three/drei";
+import { XR, useXR } from '@react-three/xr';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import React, { useMemo, useState, useEffect, Suspense } from "react";
@@ -312,6 +314,17 @@ export default function Room({ width }) {
   const [fov, setFov] = useState(55);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const rendererRef = useRef();
+
+  // Add VRButton to the document
+  useEffect(() => {
+    if (rendererRef.current) {
+      const renderer = rendererRef.current;
+      document.body.appendChild(VRButton.createButton(renderer));
+    }
+  }, [rendererRef]);
+
+
 
   useEffect(() => {
     if (width < 500) {
@@ -341,7 +354,11 @@ export default function Room({ width }) {
 
   return (
     <div style={{ height: "100vh", width: "100vw", margin: 0, padding: 0 }}>
-      <Canvas gl={{ antialias: true, physicallyCorrectLights: true}}>
+      <Canvas gl={{ antialias: true, physicallyCorrectLights: true}} ref={rendererRef}
+        onCreated={({ gl }) => {
+          gl.setClearColor(new THREE.Color("#202020"));
+          gl.xr.enabled = true; // Enable XR (VR)
+        }}>
 
       <LoadingManager total={27} />
         
@@ -402,7 +419,7 @@ export default function Room({ width }) {
       </video>
 
       <AudioPlayer 
-        url="/assets/audio/voiceover_2.mp3" 
+        url="/assets/audio/voiceover.mp3" 
         isPlaying={isPlaying} 
         onEnded={handleAudioEnd} 
       />
